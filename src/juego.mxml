@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+				layout="absolute" width="560" height="560" xmlns:local="*">
+	<!--<local:FinalPeleaControl width="560" height="560" dificultad="1" ofensiva="true"/>-->
+	<local:FabulosoFred width="460" height="460" dificultad="{5}"/>
+</mx:Application>

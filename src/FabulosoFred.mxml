@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" addedToStage="init()">
+	<mx:Metadata>
+		[Event(name="aciertoJuego", type="box.events.GenericEvent")]
+		[Event(name="errorJuego", type="box.events.GenericEvent")]
+	</mx:Metadata>
+	
+	<mx:Style>
+		
+		.botonDerecha{
+			skin: Embed("images/derechaOff.png");
+		}
+		
+		.botonDerechaPresionado{
+			skin: Embed("images/derechaOn.png");
+		}
+		
+		.botonIzquierda{
+			skin: Embed("images/izquierdaOff.png");
+		}
+		
+		.botonIzquierdaPresionado{
+			skin: Embed("images/izquierdaOn.png");
+		}
+		
+		.botonArriba{
+			skin: Embed("images/arribaOff.png");
+		}
+		
+		.botonArribaPresionado{
+			skin: Embed("images/arribaOn.png");
+		}
+		
+		.botonAbajo{
+			skin: Embed("images/abajoOff.png");
+		}
+		
+		.botonAbajoPresionado{
+			skin: Embed("images/abajoOn.png");
+		}
+		
+	</mx:Style>
+	
+	<mx:Script>
+		<![CDATA[
+			import box.Constantes;
+			import box.events.GenericEvent;
+			
+			import com.greensock.*;
+			import com.greensock.easing.*;
+			
+			[Bindable] public var dificultad:int;
+			[Bindable] public var ofensiva:Boolean;
+			[Bindable] private var turnoUsuario:Boolean = false;
+			private var conteo:int = 3;
+			private var valores:Array = [Constantes.UP, Constantes.DOWN, Constantes.LEFT, Constantes.RIGHT, Constantes.UP, Constantes.DOWN, Constantes.LEFT, Constantes.RIGHT];
+			private var secuencia:Array  = new Array();
+			private var contadorSimon:int = -1;
+			private var contadorJugador:int = 0;
+			private var noSecuencias:int = 0;
+			
+			private function init():void
+			{
+				stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownListener);
+			}
+			
+			public function cuentaRegresiva():void{
+				if(conteo == 3){
+					tres.alpha = 1;
+					TweenMax.to(tres, 1, {scaleX:1.2, scaleY:1.2, ease:Elastic.easeOut, onComplete: cuentaRegresiva, startAt:{scaleX:0.5, scaleY:0.5} });
+				}else if(conteo == 2){
+					dos.alpha = 1;
+					tres.alpha = 0;
+					TweenMax.to(dos, 1, {scaleX:1.2, scaleY:1.2,  ease:Elastic.easeOut, onComplete: cuentaRegresiva, startAt:{scaleX:0.5, scaleY:0.5}});
+				}else if(conteo == 1){
+					uno.alpha = 1;
+					dos.alpha = 0;
+					TweenMax.to(uno, 1, {scaleX:1.2, scaleY:1.2,  ease:Elastic.easeOut, onComplete: cuentaRegresiva, startAt:{scaleX:0.5, scaleY:0.5} });
+				}else{
+					uno.alpha = 0;
+					comenzar(ofensiva);
+				}
+				conteo--;				
+			}
+			
+			private function keyDownListener(e:KeyboardEvent):void
+			{
+				if (turnoUsuario && this.visible) {
+					if (e.keyCode == Constantes.LEFT) {
+						playerTurn(izq);
+					}
+					else if (e.keyCode == Constantes.UP){
+						playerTurn(arriba);
+					}
+					else if (e.keyCode == Constantes.RIGHT){
+						playerTurn(der);
+					}
+					else if (e.keyCode == Constantes.DOWN){
+						playerTurn(abajo)
+					}
+				}
+			}
+			
+			private function comenzar(ofensiva:Boolean):void
+			{
+				this.ofensiva = ofensiva;
+				noSecuencias = dificultad;
+				contadorSimon = -1;
+				contadorJugador = 0;
+				turnoUsuario = false;
+				secuencia = new Array();
+				for (var i:int = 0; i < noSecuencias; i++) {
+					var index:int = Math.random() * 7;
+					secuencia.push(valores[index]);
+				}
+				simonTurn();
+			}
+			
+			private function clickButton(boton:Button):void
+			{
+				if (boton.id=="arriba") {
+					boton.styleName = "botonArribaPresionado";
+				}
+				else if(boton.id=="izq") {
+					boton.styleName = "botonIzquierdaPresionado";
+				}
+				else if(boton.id=="der") {
+					boton.styleName = "botonDerechaPresionado";
+				}
+				else if(boton.id=="abajo") {
+					boton.styleName = "botonAbajoPresionado";
+				} 
+			}
+			
+			private function simonTurn():void
+			{
+				reiniciaBotones();
+				contadorSimon++;
+				trace('secuencia: ' + secuencia.toString() + ' contador: ' + contadorSimon);
+				if (contadorSimon < noSecuencias) {
+					if (secuencia[contadorSimon] == Constantes.LEFT) {
+						TweenMax.to(izq, 1, { onStart: clickButton, onStartParams: [izq], onComplete: simonTurn});
+					}
+					else if (secuencia[contadorSimon] == Constantes.UP) {
+						TweenMax.to(arriba, 1, { onStart: clickButton, onStartParams: [arriba], onComplete: simonTurn});
+					}
+					else if (secuencia[contadorSimon] == Constantes.DOWN) {
+						TweenMax.to(abajo, 1, { onStart: clickButton, onStartParams: [abajo], onComplete: simonTurn});
+					}
+					else if (secuencia[contadorSimon] == Constantes.RIGHT) {
+						TweenMax.to(der, 1, {onStart: clickButton, onStartParams: [der], onComplete: simonTurn});
+					}
+				}
+				else if (contadorSimon == noSecuencias) {
+					turnoUsuario = true;
+				}
+			}
+			
+			private function reiniciaBotones():void
+			{
+				arriba.styleName = "botonArriba";
+				izq.styleName = "botonIzquierda";
+				der.styleName = "botonDerecha";
+				abajo.styleName = "botonAbajo";
+			}
+			
+			private function playerTurn(boton:Button):void
+			{
+				if (turnoUsuario) {
+					if (secuencia[contadorJugador] == Constantes.LEFT && boton.id == "izq") {
+						TweenMax.to(izq, 0.5, { onStart: clickButton, onStartParams: [izq], onComplete: reiniciaBotones});
+						contadorJugador++;
+					}
+					else if (secuencia[contadorJugador] == Constantes.UP && boton.id == "arriba") {
+						TweenMax.to(arriba, 0.5, { onStart: clickButton, onStartParams: [arriba], onComplete: reiniciaBotones});
+						contadorJugador++;
+					}
+					else if (secuencia[contadorJugador] == Constantes.DOWN && boton.id == "abajo") {
+						TweenMax.to(abajo, 0.5, { onStart: clickButton, onStartParams: [abajo], onComplete: reiniciaBotones});
+						contadorJugador++;
+					}
+					else if (secuencia[contadorJugador] == Constantes.RIGHT && boton.id == "der") {
+						TweenMax.to(der, 0.5, {onStart: clickButton, onStartParams: [der], onComplete: reiniciaBotones});
+						contadorJugador++;
+					}
+					else {
+						dispatchEvent(new GenericEvent(GenericEvent.FALLO));
+						turnoUsuario = false;
+					}
+				}
+				if (contadorJugador == noSecuencias) {
+					dispatchEvent(new GenericEvent(GenericEvent.ACIERTO));
+					turnoUsuario = false;
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Button id="arriba"
+			   x="{ (this.width/2)-(arriba.width/2) }" 
+			   y="{ (this.height/2) - arriba.height }" 
+			   styleName="botonArriba"/>
+	<mx:Button id="izq" 
+			   x="{ (this.width/2)-(izq.width) + 2}" 
+			   y="{ (this.height/2) - (izq.height/2) - 2}" 
+			   styleName="botonIzquierda" />
+	<mx:Button id="der" 
+			   x="{ (this.width/2) - 3}" 
+			   y="{ (this.height/2) - (der.height/2) - 2}" 
+			   styleName="botonDerecha" />
+	<mx:Button id="abajo" 
+			   x="{ (this.width/2)- (abajo.width/2)}" 
+			   y="{ (this.height/2) - 3}" 
+			   styleName="botonAbajo"/>
+	
+	<mx:Image id="tres" 
+			   x="{ (this.width/2)- (tres.width/2)}" 
+			   y="{ (this.height/2) - (tres.height/2)}" 
+			   source="@Embed(source='images/tres.png')" alpha="0"/>
+	
+	<mx:Image id="dos" 
+			  x="{ (this.width/2)- (dos.width/2)}" 
+			  y="{ (this.height/2) - (dos.height/2)}" 
+			  source="@Embed(source='images/dos.png')" alpha="0"/>
+	
+	<mx:Image id="uno" 
+			  x="{ (this.width/2)- (uno.width/2)}" 
+			  y="{ (this.height/2) - (uno.height/2)}" 
+			  source="@Embed(source='images/uno.png')" alpha="0"/>
+	
+	<mx:Button id="iniciar" label="Iniciar" click=" cuentaRegresiva()" 
+			   x="{ (this.width/2)- (iniciar.width/2)}" 
+			   y="{ (this.height/2) - (iniciar.height/2)}"  />
+	
+</mx:Canvas>
